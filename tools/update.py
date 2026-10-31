@@ -267,6 +267,7 @@ def main():
     pending = rj(os.path.join(T, 'pending_en.json'), [])
     vids = playlist_videos()
     print('playlist videos:', len(vids))
+    if not vids: sys.exit('ERROR: playlist returned no videos (YouTube may have blocked the request)')
     changed, log = False, []
     for vid, title in vids:
         if vid in known or vid in skip: continue
