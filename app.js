@@ -1,5 +1,5 @@
 /* 321舊約導讀 · 主程式（ES5，給 WPS／舊 WebView 也能跑） */
-var APPVER = '2026.1031.085212';
+var APPVER = '2026.1031.090952';
 var SVC = { xz: 'https://xiaozhi-proxy.spch321.workers.dev', tts: 'https://azure-tts.spch321.workers.dev', model: 'claude-sonnet-4-6' };
 var VOICES = { zh: ['zh-TW-YunJheNeural', 'zh-CN-Yunfan:DragonHDLatestNeural', 'zh-CN-Xiaochen:DragonHDLatestNeural'], en: ['en-US-AndrewNeural', 'en-US-AvaNeural', 'en-US-BrianNeural'], zs: ['zh-CN-Yunfan:DragonHDLatestNeural', 'zh-CN-Xiaochen:DragonHDLatestNeural', 'zh-TW-YunJheNeural'] };
 var EPOCH = [2026, 9, 31];
@@ -74,6 +74,7 @@ function getLesson(n, cb) {
   if (CH[key]) { cb(pick(CH[key])); return; }
   getJSON('data/' + dl() + '-' + pad2(chunkOf(n)) + '.json', function (d) { if (d) CH[key] = d; cb(pick(d)); });
 }
+function maxN() { var m = 0; if (IDX) for (var i = 0; i < IDX.length; i++) if (IDX[i][0] > m) m = IDX[i][0]; return m; }
 function idxNums() { var a = []; if (IDX) for (var i = 0; i < IDX.length; i++) a.push(IDX[i][0]); return a; }
 function idxGet(n) { if (IDX) for (var i = 0; i < IDX.length; i++) if (IDX[i][0] === n) return IDX[i]; return null; }
 function todayNo() {
@@ -250,7 +251,7 @@ function paintList() {
 }
 function fullSearch() {
   var q = trim(LST.q); if (!q) { toast(T('typeFirst')); return; }
-  toast(T('searching')); var left = 0, hits = {}, total = Math.ceil(IDX[IDX.length - 1][0] / 50), nq = normQ(q);
+  toast(T('searching')); var left = 0, hits = {}, total = Math.ceil(maxN() / 50), nq = normQ(q);
   for (var k = 0; k < total; k++) (function (k) {
     left++;
     var go = function (arr) {
@@ -385,7 +386,7 @@ function restoreFile(f) {
   rd.readAsText(f);
 }
 function offlineAll() {
-  var total = Math.ceil(IDX[IDX.length - 1][0] / 50), done = 0, st = $('#offst');
+  var total = Math.ceil(maxN() / 50), done = 0, st = $('#offst');
   for (var k = 0; k < total; k++) (function (k) { getJSON('data/' + dl() + '-' + pad2(k) + '.json', function (d) { if (d) CH[dl() + k] = d; done++; if (st) st.textContent = ' ' + done + '/' + total; if (done === total) toast(T('offDone')); }); })(k);
 }
 

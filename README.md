@@ -30,3 +30,9 @@
 | manifest.json、icon-*.png、apple-touch-icon*.png | 加到主畫面的圖示 |
 
 詩歌庫沿用《321互動聖經》（同網域 `../bible/music.json`）。
+
+## 每日自動更新
+
+- **GitHub Actions（`.github/workflows/daily-update.yml`）**：每天 09:17（台北時間）讀取播放清單「旧约导读」。已有章節的新影片會連到該章（繁體影片給繁體介面，簡體影片給簡體與英文介面）；還沒有的章節，會從影片說明欄取出導讀文字，自動做成繁／簡兩版新課（經文用和合本），英文版先放簡體文字並記在 `tools/pending_en.json`。到 GitHub 的 Actions 頁面按「Run workflow」可以立刻手動跑一次。
+- **英文補譯**：每天 10:23（台北時間）的排程依 `tools/TRANSLATE.md` 把待譯的課翻成英文並發佈。
+- 想讓某支影片不要被自動處理，把它的影片 ID 加進 `tools/skip.json`。
