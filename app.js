@@ -1,5 +1,5 @@
 /* 321舊約導讀 · 主程式（ES5，給 WPS／舊 WebView 也能跑） */
-var APPVER = '2026.1031.093939';
+var APPVER = '2026.1031.110702';
 var SVC = { xz: 'https://xiaozhi-proxy.spch321.workers.dev', tts: 'https://azure-tts.spch321.workers.dev', model: 'claude-sonnet-4-6' };
 var VOICES = { zh: ['zh-TW-YunJheNeural', 'zh-CN-Yunfan:DragonHDLatestNeural', 'zh-CN-Xiaochen:DragonHDLatestNeural'], en: ['en-US-AndrewNeural', 'en-US-AvaNeural', 'en-US-BrianNeural'], zs: ['zh-CN-Yunfan:DragonHDLatestNeural', 'zh-CN-Xiaochen:DragonHDLatestNeural', 'zh-TW-YunJheNeural'] };
 var EPOCH = [2026, 9, 31];
@@ -111,6 +111,7 @@ function open_(p) { var h = hashOf(p); if (location.hash === h) render(); else l
 function back() { if (history.length > 1 && R.page.t !== 'home') history.back(); else open_({ t: 'home' }); }
 window.addEventListener('hashchange', function () { closeHSheet(); stopAll(); render(); });
 function setApp(h, keep) { var a = $('#app'); a.innerHTML = h; if (!keep) window.scrollTo(0, 0); }
+function coBtn() { return window.CR ? '<button class="ib cob" data-act="coread" aria-label="' + esc(CR.text('title')) + '">📡</button>' : ''; }
 function topbar(title, bk, right) {
   return '<header class="tb">' + (bk ? '<button class="ib" onclick="back()" aria-label="' + esc(T('back')) + '">‹</button>' : '<div class="brand"><img src="icon-192.png" alt=""><span>' + esc(T('appName')) + '</span></div>') +
     (bk ? '<div class="tb-t">' + esc(title || '') + '</div>' : '<div class="grow"></div>') + (right || '') + langSw() + '</header>';
@@ -171,6 +172,7 @@ function vHome() {
     '<div class="pbar"><i style="width:' + pct + '%"></i></div>';
   var nu = nextUnread(), ni = idxGet(nu);
   if (S.last && ni) h += '<div class="nextrow" data-act="go" data-n="' + nu + '"><div class="ri">📖</div><div class="rt"><b>' + esc(T('contRead')) + '</b><span>' + esc(T('noFmt', nu)) + '・' + esc(ni[1]) + '</span></div><span class="chev">›</span></div>';
+  h += '<button class="cocard" data-act="coread"><span class="ci">📡</span><span class="ct"><b>' + esc(window.CR ? CR.text('title') : '') + '</b><span>' + esc(window.CR ? CR.text('cardSub') : '') + '</span></span><span class="chev">›</span></button>';
   h += '<div class="row2"><button class="tile" data-act="rand"><span>🎲</span>' + esc(T('randSnack')) + '</button><button class="tile" data-act="tab" data-t="xz"><span>💬</span>' + esc(T('askXzT')) + '</button><button class="tile" data-act="nav" data-t="marks"><span>🖍</span>' + esc(T('myMarks')) + '</button></div>';
   h += fellowCard();
   h += '<div class="creed"><div class="c-h">' + esc(T('creedH')) + '</div><div class="c-b">' + esc(T('creed3')) + '<br>' + esc(T('creed2')) + '<br>' + esc(T('creed1')) + '</div></div>';
