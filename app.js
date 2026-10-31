@@ -1,5 +1,5 @@
 /* 321舊約導讀 · 主程式（ES5，給 WPS／舊 WebView 也能跑） */
-var APPVER = '2026.1031.092823';
+var APPVER = '2026.1031.093939';
 var SVC = { xz: 'https://xiaozhi-proxy.spch321.workers.dev', tts: 'https://azure-tts.spch321.workers.dev', model: 'claude-sonnet-4-6' };
 var VOICES = { zh: ['zh-TW-YunJheNeural', 'zh-CN-Yunfan:DragonHDLatestNeural', 'zh-CN-Xiaochen:DragonHDLatestNeural'], en: ['en-US-AndrewNeural', 'en-US-AvaNeural', 'en-US-BrianNeural'], zs: ['zh-CN-Yunfan:DragonHDLatestNeural', 'zh-CN-Xiaochen:DragonHDLatestNeural', 'zh-TW-YunJheNeural'] };
 var EPOCH = [2026, 9, 31];
@@ -102,6 +102,7 @@ function parseHash() {
   var h = (location.hash || '').replace(/^#\/?/, ''), p = h.split('/');
   if (p[0] === 'read' && +p[1]) return { t: 'read', n: +p[1] };
   if (p[0] === 'quiz' && +p[1]) return { t: 'quiz', n: +p[1] };
+  if (p[0] === 'join' && p[1]) return { t: 'join', code: p[1] };
   if (/^(list|me|marks|studio|set|notes|ytmap)$/.test(p[0])) return { t: p[0] };
   return { t: 'home' };
 }
@@ -133,7 +134,9 @@ function cycleFont() { S.set.font = (S.set.font + 1) % 5; save(); applyChrome();
 
 var LCUR = null;
 function render() {
-  R.page = parseHash(); BUSY = isBusy(); updIdle();
+  R.page = parseHash();
+  if (R.page.t === 'join') { var jc = R.page.code; try { history.replaceState(null, '', location.pathname + '#/'); } catch (e) { } R.page = { t: 'home' }; setTimeout(function () { if (window.CR) CR.join(jc); }, 300); }
+  BUSY = isBusy(); updIdle();
   var p = R.page;
   if (p.t !== 'studio' && window.MX && MX.leave) MX.leave();
   getIdx(function (idx) {
@@ -274,7 +277,7 @@ function vRead(n) {
     var right = '<button class="ib ttsb" data-act="ttspage" aria-label="' + esc(T('listen')) + '">' + svgI('sound') + '</button><button class="ib" data-act="font" aria-label="' + esc(T('fontB')) + '">Aa</button>';
     var h = topbar(T('noFmt', n), true, right) + '<article class="lesson wrap" id="lesson">';
     h += '<div class="l-head"><div class="l-no">' + esc(T('appName')) + '・' + esc(T('noFmt', n)) + '</div>' + blk('h1', 'l-title', n, 't', x.ref, sentHtml(x.t, 0)) + '<div class="l-ref">' + esc(x.ref) + '</div>' +
-      vidHtml(n) + '<div class="l-acts"><button class="pill" data-act="ttsfrom" data-top="1">🔊 ' + esc(T('listenAll')) + '</button><button class="pill" data-act="askl">💬 ' + esc(T('askXz')) + '</button><button class="pill" data-act="cardl">🖼 ' + esc(T('makeCardV')) + '</button><button class="pill" data-act="star">' + (S.star[n] ? '★' : '☆') + ' ' + esc(T('starB')) + '</button><button class="pill" data-act="sharel">↗ ' + esc(T('share')) + '</button></div></div>';
+      vidHtml(n) + '<div class="l-acts"><button class="pill" data-act="ttsfrom" data-top="1">🔊 ' + esc(T('listenAll')) + '</button><button class="pill" data-act="coread">📡 ' + esc(window.CR ? CR.label() : '') + '</button><button class="pill" data-act="askl">💬 ' + esc(T('askXz')) + '</button><button class="pill" data-act="cardl">🖼 ' + esc(T('makeCardV')) + '</button><button class="pill" data-act="star">' + (S.star[n] ? '★' : '☆') + ' ' + esc(T('starB')) + '</button><button class="pill" data-act="sharel">↗ ' + esc(T('share')) + '</button></div></div>';
     if (x.v.length) h += sec('v', '📖', T('sScr'), T('sayScr', x.ref), verseBlk(n, 'v', x.ref, x.v));
     var bh = ''; eachA(x.b, function (p, i) { bh += paraBlk(n, 'b' + i, x.ref, p, 'p', 'msg-p'); });
     h += sec('b', '✨', T('sMsg'), T('sayMsg'), bh);
@@ -295,7 +298,7 @@ function vRead(n) {
       '<button class="btn block" data-act="quiz">🎯 ' + esc(T('quizMe')) + '</button>' +
       '<div class="pn">' + (pv ? '<button class="btn" data-act="go" data-n="' + pv + '">‹ ' + esc(T('noFmt', pv)) + '</button>' : '<span></span>') + (nx ? '<button class="btn" data-act="go" data-n="' + nx + '">' + esc(T('noFmt', nx)) + ' ›</button>' : '<span></span>') + '</div>' +
       '<div class="xs muted center">' + esc(T('hlTip')) + '</div></div></article>';
-    setApp(h); paintHl(hlRoot());
+    setApp(h); paintHl(hlRoot()); if (window.CR) CR.rendered();
     eachA($$('.mq-ta'), function (ta) { ta.oninput = function () { var o = S.note[n] || (S.note[n] = {}); o[ta.getAttribute('data-nq')] = ta.value; o.ts = now(); clearTimeout(ta.t); ta.t = setTimeout(save, 400); }; });
     if (R.sub.autoplay) { R.sub.autoplay = 0; setTimeout(function () { ttsPage(hlRoot(), true, LCUR.title); }, 50); }
     prefetch(nx);
@@ -477,7 +480,7 @@ function fuHtml() { var a = T('fu_' + (S.set.aud || 'adult')).split('|'), h = '<
 /* ---------- 語音設定給 ext.js 用 ---------- */
 function voiceName() { var v = VOICES[dl()] || VOICES.zh; return v[S.set.voice] || v[0]; }
 function rateAttr() { var r = S.set.rate * 10; return (r >= 0 ? '+' : '') + r + '%'; }
-function isBusy() { return !!((typeof spk !== 'undefined' && spk.on) || (typeof sayKey !== 'undefined' && sayKey) || (typeof chatBusy !== 'undefined' && chatBusy) || (window.MX && MX.busy && MX.busy()) || $('#hsheet') || $('.rw-mask')); }
+function isBusy() { return !!((window.CR && CR.on()) || (typeof spk !== 'undefined' && spk.on) || (typeof sayKey !== 'undefined' && sayKey) || (typeof chatBusy !== 'undefined' && chatBusy) || (window.MX && MX.busy && MX.busy()) || $('#hsheet') || $('.rw-mask')); }
 
 /* ---------- 安裝提示 ---------- */
 var DEFER_IP = null;
@@ -796,7 +799,7 @@ function raClear() { eachA(qa('.tts-reading'), function (e) { e.className = e.cl
 function raSeg(item, k) {
   if (!item || !item.segs.length) return; k = Math.max(0, Math.min(k, item.segs.length - 1));
   if (item.at === k && document.querySelector('.tts-reading')) return; item.at = k; raClear(); var e = item.segs[k]; if (!e || !e.parentNode) return;
-  e.className += ' tts-reading'; if (now() - raManualAt > RA_COOL) { try { e.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (x) { } }
+  e.className += ' tts-reading'; if (window.CR) CR.mark(e); if (now() - raManualAt > RA_COOL) { try { e.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (x) { } }
 }
 function raProgress(item, ratio) {
   if (!item || item.lens.length < 2 || !(ratio >= 0)) return; var tot = 0, acc = 0, k = 0, j; for (j = 0; j < item.lens.length; j++) tot += item.lens[j];
@@ -1300,7 +1303,7 @@ function pxPick(i) {
 /* ---------- 事件委派 ---------- */
 document.addEventListener('click', function (e) {
   var t = e.target;
-  if (t && t.className && String(t.className).indexOf('sent') >= 0 && blkOf(t) && !$('#hsheet')) { onSentTap(t); return; }
+  if (t && t.className && String(t.className).indexOf('sent') >= 0 && blkOf(t) && !$('#hsheet')) { if (window.CR) { CR.mark(t); CR.manual(); } onSentTap(t); return; }
   var n = t; while (n && n !== document && !(n.getAttribute && n.getAttribute('data-act'))) n = n.parentNode;
   if (!n || n === document) { if (t && t.className === 'hl-note') { var hk = t.getAttribute('data-hk'), list = sentList(); for (var q = 0; q < list.length; q++) if (hlKeyOf(list[q]) === hk) { openHlSheet(list[q]); break; } } return; }
   var a = n.getAttribute('data-act'), i;
@@ -1444,6 +1447,7 @@ document.addEventListener('click', function (e) {
   else if (a === 'lseg') { LST.seg = +v; vList(); }
   else if (a === 'fulls') fullSearch();
   else if (a === 'ttsfrom') { stopAll(); ttsPage(hlRoot(), true, LCUR ? LCUR.title : ''); }
+  else if (a === 'coread') { if (window.CR) CR.sheet(); }
   else if (a === 'askl' && x) openXz(T('askLesson', x.lab || x.n, x.t), XZ.ctx);
   else if (a === 'cardl' && x) { var vt = ''; eachA(x.v.slice(0, 2), function (q) { vt += q[2]; }); openStudio({ t: vt, ref: x.ref, n: x.dc || '' }); }
   else if (a === 'carddc' && x) openStudio({ t: x.dc, ref: T('appName') + '・' + T('noFmt', x.n), n: '', plain: true });

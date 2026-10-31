@@ -127,6 +127,15 @@ a{color:var(--brand)}
 .sent[data-hl]{background:linear-gradient(transparent 58%,var(--hlbg-gold) 58%)}
 .sent[data-color="green"]{background:linear-gradient(transparent 58%,var(--hlbg-green) 58%)}.sent[data-color="blue"]{background:linear-gradient(transparent 58%,var(--hlbg-blue) 58%)}.sent[data-color="pink"]{background:linear-gradient(transparent 58%,var(--hlbg-pink) 58%)}.sent[data-color="purple"]{background:linear-gradient(transparent 58%,var(--hlbg-purple) 58%)}.sent[data-color="maroon"]{background:linear-gradient(transparent 58%,var(--hlbg-maroon) 58%)}.sent[data-color="brown"]{background:linear-gradient(transparent 58%,var(--hlbg-brown) 58%)}.sent[data-color="charcoal"]{background:linear-gradient(transparent 58%,var(--hlbg-charcoal) 58%)}
 .decl .sent[data-hl]{background:rgba(255,255,255,.18)}
+.co-now{box-shadow:inset 0 -3px 0 var(--gold),inset 0 0 0 999px var(--gold-soft);-webkit-box-decoration-break:clone;box-decoration-break:clone;border-radius:4px;transition:box-shadow .3s}
+.crchip{position:fixed;right:10px;top:calc(60px + env(safe-area-inset-top));z-index:58;border:0;border-radius:999px;padding:7px 14px 7px 10px;font:inherit;font-size:.8em;background:var(--brand);color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.22);max-width:78vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.crchip .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#5BD38A;margin-right:6px;vertical-align:1px;animation:crp 1.6s infinite}
+.crchip.wait .dot{background:#F2C14E}.crchip.off{background:var(--gold-d)}.crchip.off .dot{background:#fff;animation:none}
+@keyframes crp{0%,100%{opacity:1}50%{opacity:.35}}
+.cr-k{font-size:.86em;color:var(--mute);text-align:center;margin-top:6px}.cr-code{font-size:2.3em;font-weight:800;letter-spacing:.12em;text-align:center;color:var(--brand);margin:2px 0 8px;font-variant-numeric:tabular-nums}
+.cr-qr{display:flex;justify-content:center;margin:4px 0}.cr-qr img{width:180px;height:180px;image-rendering:pixelated;background:#fff;border-radius:10px;padding:4px}
+.cr-count{text-align:center;font-weight:700;margin:10px 0 4px}.cr-acts{justify-content:center}.cr-tip{margin-top:10px;line-height:1.6}.cr-desc{margin-bottom:12px;line-height:1.7}
+.cr-join{display:flex;gap:8px;margin-top:6px}.cr-join input{flex:1;min-width:0;font:inherit;font-size:1.15em;letter-spacing:.1em;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);text-align:center}
 .tts-reading{box-shadow:inset 0 0 0 999px var(--reading);-webkit-box-decoration-break:clone;box-decoration-break:clone;border-radius:4px}
 .decl .tts-reading{box-shadow:inset 0 0 0 999px rgba(255,255,255,.18)}
 .hl-note{margin:6px 0 12px;padding:8px 12px;border-left:3px solid var(--gold);background:var(--soft);border-radius:0 10px 10px 0;white-space:pre-wrap;font-size:.92em;cursor:pointer}
@@ -196,6 +205,7 @@ html[data-lang="en"] .brand{letter-spacing:0}
 <body>
 <div id="app"><div class="empty">舊約導讀載入中……</div></div>
 <div id="tabs"></div>
-<script src="app.js?v=2026.1031.084524"></script>
+<script src="app.js?v=2026.1031.093939"></script>
+<script src="coread.js?v=2026.1031.093939"></script>
 </body>
 </html>

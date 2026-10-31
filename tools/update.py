@@ -244,9 +244,10 @@ def bump_version():
     v = time.strftime('%Y.%m%d.%H%M%S', time.gmtime(time.time() + 8 * 3600))
     wj(os.path.join(ROOT, 'version.json'), {'v': v})
     for fn, pats in (('sw.js', [(r"var V = 'ot321-[^']*'", "var V = 'ot321-%s'" % v), (r"var VER = '[^']*'", "var VER = '%s'" % v)]),
-                     ('app.js', [(r"APPVER = '[^']*'", "APPVER = '%s'" % v)])):
+                     ('app.js', [(r"APPVER = '[^']*'", "APPVER = '%s'" % v)]),
+                     ('index.html', [(r'\.js\?v=[0-9.]+', '.js?v=%s' % v)])):
         p = os.path.join(ROOT, fn); s = open(p, encoding='utf-8').read()
-        for a, b in pats: s = re.sub(a, b, s, count=1)
+        for a, b in pats: s = re.sub(a, b, s, count=0 if fn == 'index.html' else 1)
         open(p, 'w', encoding='utf-8').write(s)
     return v
 
