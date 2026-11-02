@@ -3,7 +3,7 @@
    傳輸：WebRTC 點對點（PeerJS，信令走 PeerJS 公用伺服器），帶領者的手機就是房間主機。
    ES5。 */
 (function () {
-  var PEER_JS = ['https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js', 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'];
+  var PEER_JS = ['peerjs.min.js?v=' + (typeof APPVER !== 'undefined' ? APPVER : '1')];
   var QR_JS = ['https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js', 'https://unpkg.com/qrcode-generator@1.4.4/qrcode.js', 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js'];
   var PFX = 'ot321-co-', FOLLOW_COOL = 8000;
   var TX = {
@@ -26,7 +26,7 @@
       document.head.appendChild(s);
     })();
   }
-  function hasRtc() { return !!(window.RTCPeerConnection || window.webkitRTCPeerConnection); }
+  function hasRtc() { return true; }
 
   /* ---------- 狀態 ---------- */
   var C = { role: '', code: '', peer: null, conns: [], host: null, last: null, retry: 0, rt: null, manualAt: 0, ptEl: null, status: '', want: null };
