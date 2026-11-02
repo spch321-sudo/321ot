@@ -177,9 +177,9 @@
         '<div class="cr-qr" id="crqr"></div><div class="xs muted center">' + E(X('qrTip')) + '</div>' +
         '<div class="cr-count" id="crcount"></div>' +
         '<div class="sheet-acts cr-acts"><button class="btn pri" data-act="crinvite">↗ ' + E(X('invite')) + '</button><button class="btn" data-act="crcopy">⧉ ' + E(X('copyLink')) + '</button></div>' +
-        '<div class="xs muted cr-tip">' + E(X('tip')) + '</div>' +
+        (window.CR_SCR_UI ? CR_SCR_UI(function () { return X('title'); }, '') : '') + '<div class="xs muted cr-tip">' + E(X('tip')) + '</div>' +
         '<div class="sheet-acts" style="margin-top:10px"><button class="btn" data-act="crend">■ ' + E(X('end')) + '</button><button class="btn" data-act="hclose">' + E(T('close')) + '</button></div>';
-      openHSheet(h); paintSheetCount(); qrInto('crqr', u); return;
+      window.__crScrU = (typeof appUrl === 'function' ? appUrl() : location.origin + location.pathname) + '?screen=1#/join/' + C.code; openHSheet(h); paintSheetCount(); qrInto('crqr', u); return;
     }
     if (C.role === 'follow') {
       h += '<div class="cr-k">' + E(X('followOnly')) + '</div><div class="cr-code">' + E(C.code.slice(0, 3) + ' ' + C.code.slice(3)) + '</div>' +
