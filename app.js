@@ -1,5 +1,5 @@
 /* 321舊約導讀 · 主程式（ES5，給 WPS／舊 WebView 也能跑） */
-var APPVER = '2026.1031.110702';
+var APPVER = '2026.1102.164546';
 var SVC = { xz: 'https://xiaozhi-proxy.spch321.workers.dev', tts: 'https://azure-tts.spch321.workers.dev', model: 'claude-sonnet-4-6' };
 var VOICES = { zh: ['zh-TW-YunJheNeural', 'zh-CN-Yunfan:DragonHDLatestNeural', 'zh-CN-Xiaochen:DragonHDLatestNeural'], en: ['en-US-AndrewNeural', 'en-US-AvaNeural', 'en-US-BrianNeural'], zs: ['zh-CN-Yunfan:DragonHDLatestNeural', 'zh-CN-Xiaochen:DragonHDLatestNeural', 'zh-TW-YunJheNeural'] };
 var EPOCH = [2026, 9, 31];
@@ -1079,9 +1079,9 @@ function drawXz() {
   var el = $('#xz');
   if (!el) { el = document.createElement('div'); el.id = 'xz'; el.className = 'xz'; document.body.appendChild(el); }
   el.className = 'xz' + (XZ.open ? ' on' : ''); if (!XZ.open) { el.innerHTML = ''; return; }
-  if (XZ.opt === undefined) XZ.opt = !S.chat.length; var qs = '', qq = audQuick().split('|'); eachA(qq, function (q) { qs += '<button class="qs-chip" data-act="chatq">' + esc(q) + '</button>'; });
+  if (XZ.opt === undefined) XZ.opt = false; var qs = '', qq = audQuick().split('|'); eachA(qq, function (q) { qs += '<button class="qs-chip" data-act="chatq">' + esc(q) + '</button>'; });
   var cur = window.LCUR && R.page && R.page.t === 'read' ? LCUR.title : '';
-  el.innerHTML = '<div class="hd"><button class="ib" onclick="closeXz()" aria-label="close">✕</button><img src="icon-192.png" alt="" style="width:36px;height:36px;border-radius:10px"><div class="grow"><b>' + esc(T('xz')) + '</b><div class="xs muted">' + esc(T('t_xz_d')) + '</div></div><button class="btn sm" data-act="chatfoldall" title="' + esc(T('foldAll')) + '">' + esc(T('foldAllB')) + '</button><button class="btn sm" data-act="chatclear">' + esc(T('xzNew')) + '</button></div>' +
+  el.innerHTML = '<div class="hd"><button class="ib" onclick="closeXz()" aria-label="close">✕</button><img src="icon-192.png" alt="" style="width:36px;height:36px;border-radius:10px"><div class="grow"><b>' + esc(T('xz')) + '</b><div class="xs muted">' + esc(T('t_xz_d')) + '</div></div><button class="ib xzfs" data-act="xzfs" aria-label="Aa">A</button><button class="btn sm" data-act="chatfoldall" title="' + esc(T('foldAll')) + '">' + esc(T('foldAllB')) + '</button><button class="btn sm" data-act="chatclear">' + esc(T('xzNew')) + '</button></div>' +
     '<div class="bd" id="xzb">' + (cur ? '<div class="chatctx">' + esc(T('xzCtxChip', cur)) + '</div>' : '') +
     '<div id="xzOpts">' + xzOptsHtml() + '</div>' +
     '<div class="chatlog" id="chatlog">' + chatLogHtml() + '</div></div>' +
@@ -1089,7 +1089,7 @@ function drawXz() {
   var inp = $('#chatIn'); if (inp) inp.onkeydown = function (e) { if (e.keyCode === 13 && !e.shiftKey) { e.preventDefault(); sendChat(inp.value); } };
   paintSay(); var bd = $('#xzb'); if (bd) bd.scrollTop = bd.scrollHeight;
 }
-function paintChat() { var log = $('#chatlog'); if (!log) return; log.innerHTML = chatLogHtml(); paintSay(); var bd = $('#xzb'); if (bd) setTimeout(function () { bd.scrollTop = bd.scrollHeight; }, 30); }
+function paintChat() { var log = $('#chatlog'); if (!log) return; log.innerHTML = chatLogHtml(); paintSay(); var bd = $('#xzb'); if (bd) setTimeout(function () { var l = S.chat[S.chat.length - 1], ms = log.querySelectorAll('.msg'), e = ms[ms.length - 1]; if (l && l.role !== 'user' && !l.wait && !l.cont && e && e.scrollIntoView && (l.text || '').length > 160) e.scrollIntoView({ block: 'start' }); else bd.scrollTop = bd.scrollHeight; }, 30); }
 function sendChat(text) {
   text = trim(text); if (!text || chatBusy) return; var inp = $('#chatIn'); if (inp) inp.value = '';
   if (navigator.onLine === false) { S.chat.push({ role: 'user', text: text, ts: now() }); S.chat.push({ role: 'ai', text: T('xzOffline'), ts: now() }); save(); paintChat(); return; }
@@ -1239,7 +1239,84 @@ function drawCard(cv, c, W, H) {
   if (photoBy) { ctx.font = Math.round(16 * F) + 'px ' + sans; ctx.globalAlpha = .7; ctx.fillText('Photo: ' + photoBy + ' / Pexels', W / 2, H - pad * .38); ctx.globalAlpha = 1; }
 }
 function chipRow(act, list, cur, attr) { var b = '<div class="chips" style="flex-wrap:wrap">'; eachA(list, function (x) { b += '<button class="chip' + (String(cur) === String(x[0]) ? ' on' : '') + '" data-act="' + act + '" data-' + attr + '="' + x[0] + '">' + x[1] + '</button>'; }); return b + '</div>'; }
-function openStudio(c) { stopAll(); closeHSheet(); if (XZ.open) closeXz(); studio = { t: c.t || '', ref: c.ref || '', n: c.n || '', n0: c.n || '', plain: !!c.plain }; if (R.page && R.page.t === 'studio') render(); else open_({ t: 'studio' }); }
+
+/* ===== 完整美圖工作室：直接開互動聖經的工作室（嵌入模式 iframe，9版型／4尺寸／相片模式／Pexels／AI生圖／配樂／錄影／我的作品…全部功能） ===== */
+var STUDIO_URL = window.K321_BIBLE_STUDIO || 'https://spch321-sudo.github.io/bible/?embed=studio#/studio';
+function closeStudioEmb() { var ov = document.getElementById('studioOv'); if (ov && ov.parentNode) ov.parentNode.removeChild(ov); document.body.style.overflow = ''; }
+function openStudio(c) {
+  if (navigator.onLine === false) { openStudioLite(c); return; }
+  stopAll(); closeHSheet(); if (XZ.open) closeXz(); closeStudioEmb();
+  var lg = L();
+  try { localStorage.setItem('ib_card_in', JSON.stringify({ ts: +new Date(), item: { t: c.t || '', ref: c.ref || '', n: c.n || '' }, lang: lg === 'zs' ? 'zs' : (lg === 'en' ? 'en' : 'zh') })); } catch (e) {}
+  var ov = document.createElement('div'); ov.id = 'studioOv'; ov.className = 'studioov';
+  ov.innerHTML = '<div class="sohd"><button class="ib" id="soX" aria-label="close">✕</button><b>' + esc(T('studioT')) + '</b><button class="btn sm" id="soLite">' + esc(tk('studioLite', '簡易版')) + '</button></div>' +
+    '<iframe id="studioFr" name="k321studio" src="' + STUDIO_URL + '" allow="camera *; microphone *; autoplay *; clipboard-read *; clipboard-write *; display-capture *; fullscreen *"></iframe>';
+  document.body.appendChild(ov); document.body.style.overflow = 'hidden';
+  $('#soX').onclick = closeStudioEmb;
+  $('#soLite').onclick = function () { closeStudioEmb(); openStudioLite(c); };
+}
+window.addEventListener('message', function (e) { var d = e.data; if (d && d.k321 === 'studioClose') closeStudioEmb(); });
+
+/* ===== VPICK321：從小智回答找出經文章節，取互動聖經站的和合本／WEB原文，做成美圖 ===== */
+var VPICK = (function () {
+  var BASE = (window.K321_BIBLE_BASE || 'https://spch321-sudo.github.io/bible/'), TOC = null, SH = {};
+  function get(u, cb) { var x = new XMLHttpRequest(); x.open('GET', u); x.onload = function () { if (x.status === 200) { try { cb(JSON.parse(x.responseText)); return; } catch (e) {} } cb(null); }; x.onerror = function () { cb(null); }; x.timeout = 12000; x.ontimeout = x.onerror; x.send(); }
+  function lang(md) {
+    if ((document.documentElement.getAttribute('lang') || '').slice(0, 2) === 'en') return 'en';
+    var zs = (md.match(/[们这让愿说为经圣书节]/g) || []).length, zt = (md.match(/[們這讓願說為經聖書節]/g) || []).length;
+    return zs > zt ? 'zs' : 'zh';
+  }
+  function esc(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function findRef(md, lg, toc) {
+    var names = [], i, b, k, keys = lg === 'en' ? ['en', 'aen'] : (lg === 'zs' ? ['zs', 'azs', 'zh', 'azh'] : ['zh', 'azh', 'zs', 'azs']);
+    for (i = 0; i < toc.length; i++) for (k = 0; k < keys.length; k++) { var nm = toc[i][keys[k]]; if (nm) names.push({ n: nm, b: toc[i] }); }
+    if (lg === 'en') { names.push({ n: 'Psalm', b: toc[18] }); names.push({ n: 'Psalms', b: toc[18] }); names.push({ n: 'Song of Songs', b: toc[21] }); }
+    else { names.push({ n: '詩', b: toc[18] }); names.push({ n: '诗', b: toc[18] }); }
+    names.sort(function (a, b) { return b.n.length - a.n.length; });
+    var lines = md.split(/\n/), order = [], q = [], o = [];
+    for (i = 0; i < lines.length; i++) (/^\s*>/.test(lines[i]) ? q : o).push(lines[i]);
+    order = [q.join('\n'), o.join('\n')];
+    for (var p = 0; p < order.length; p++) {
+      var txt = order[p], best = null;
+      for (i = 0; i < names.length; i++) {
+        var re = lg === 'en' ? new RegExp('(?:^|[^A-Za-z])' + esc(names[i].n) + '\\s*(\\d+)\\s*:\\s*(\\d+)(?:\\s*[-–—]\\s*(\\d+))?', 'g')
+          : new RegExp(esc(names[i].n) + '\\s*(?:第)?\\s*(\\d+)\\s*(?:[:：章篇])\\s*(\\d+)\\s*(?:節|节)?(?:\\s*[-–~—到至]\\s*(\\d+))?', 'g');
+        var m = re.exec(txt);
+        if (m && (!best || m.index < best.idx)) best = { idx: m.index, b: names[i].b, ch: +m[1], v: +m[2], v2: m[3] ? +m[3] : +m[2] };
+      }
+      if (best) return best;
+    }
+    return null;
+  }
+  function clean(s) {
+    s = s.replace(/〔[^〕]*〕/g, '');
+    var pairs = [['「', '」'], ['『', '』'], ['“', '”'], ['‘', '’']], i;
+    for (i = 0; i < pairs.length; i++) { var o = s.split(pairs[i][0]).length - 1, c = s.split(pairs[i][1]).length - 1; if (o !== c) { s = s.split(pairs[i][0]).join('').split(pairs[i][1]).join(''); } }
+    return s.replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+  }
+  function pick(md, cb) {
+    var lg = lang(md);
+    function go(toc) {
+      var r = findRef(md, lg, toc); if (!r) { cb(null); return; }
+      var key = lg + '.' + r.b.shard;
+      function use(sh) {
+        var ch = sh && sh[r.b.id] && sh[r.b.id][r.ch - 1]; if (!ch) { cb(null); return; }
+        if (r.v2 < r.v || r.v2 - r.v > 5) r.v2 = r.v + (r.v2 < r.v ? 0 : 5);
+        var cur = 0, out = '', pi, j;
+        for (pi = 0; pi < ch.length; pi++) for (j = 1; j < ch[pi].length; j += 2) { if (ch[pi][j] > 0) cur = ch[pi][j]; if (cur >= r.v && cur <= r.v2) out += (lg === 'en' ? ' ' : '') + ch[pi][j + 1]; }
+        out = clean(out); if (!out) { cb(null); return; }
+        var nm = r.b[lg === 'en' ? 'en' : lg], ref = nm + ' ' + r.ch + ':' + r.v + (r.v2 > r.v ? '-' + r.v2 : '');
+        cb({ t: out, ref: ref });
+      }
+      if (SH[key]) use(SH[key]); else get(BASE + 'bible.' + key + '.json', function (d) { if (d) SH[key] = d; use(d); });
+    }
+    if (TOC) go(TOC); else get(BASE + 'toc.json', function (d) { if (!d) { cb(null); return; } TOC = d; go(d); });
+  }
+  function card(md, open, fb) { try { pick(md, function (r) { if (r) open({ t: r.t, ref: r.ref, n: '' }); else open(fb); }); } catch (e) { open(fb); } }
+  return { pick: pick, card: card };
+})();
+
+function openStudioLite(c) { stopAll(); closeHSheet(); if (XZ.open) closeXz(); studio = { t: c.t || '', ref: c.ref || '', n: c.n || '', n0: c.n || '', plain: !!c.plain }; if (R.page && R.page.t === 'studio') render(); else open_({ t: 'studio' }); }
 function vStudio() {
   if (!studio) return back();
   var c = studio, b = topbar(T('studioT'), true) + '<div class="cardpv" id="cardPv"></div>' +
@@ -1322,7 +1399,7 @@ document.addEventListener('click', function (e) {
   else if (a === 'hlcard2') { var x = S.hl[n.getAttribute('data-k')]; if (x) openStudio({ t: x.t, ref: x.ref, n: x.n }); }
   else if (a === 'hldel2') { if (confirm(T('delHl'))) { delete S.hl[n.getAttribute('data-k')]; save(); render(); } }
   else if (a === 'favdel') { S.fav.splice(+n.getAttribute('data-i'), 1); save(); render(); }
-  else if (a === 'favcard') { var fv = S.fav[+n.getAttribute('data-i')]; if (fv) openStudio({ t: cardText(fv.text), ref: '', n: '', plain: true }); }
+  else if (a === 'favcard') { var fv = S.fav[+n.getAttribute('data-i')]; if (fv) VPICK.card(fv.text, openStudio, { t: cardText(fv.text), ref: '', n: '', plain: true }); }
   else if (a === 'hclose') closeHSheet();
   else if (a === 'chatsend') sendChat(($('#chatIn') || {}).value);
   else if (a === 'chatq') { sendChat(n.textContent); var qp = $('#qsPanel'); if (qp) qp.style.display = 'none'; }
@@ -1332,7 +1409,7 @@ document.addEventListener('click', function (e) {
   else if (a === 'msgfold') msgFold(+n.getAttribute('data-i'));
   else if (a === 'chatfoldall') foldAll();
   else if (a === 'msgshare') msgShare(S.chat[+n.getAttribute('data-i')]);
-  else if (a === 'msgcard') { var mm = S.chat[+n.getAttribute('data-i')]; openStudio(mm.src ? { t: mm.src.t, ref: mm.src.ref, n: cardText(mm.text) } : { t: cardText(mm.text), ref: '', plain: true }); }
+  else if (a === 'msgcard') { var mm = S.chat[+n.getAttribute('data-i')]; if (mm.src) openStudio({ t: mm.src.t, ref: mm.src.ref, n: cardText(mm.text) }); else VPICK.card(mm.text, openStudio, { t: cardText(mm.text), ref: '', plain: true }); }
   else if (a === 'msgcopy') copyText(mdStrip(S.chat[+n.getAttribute('data-i')].text));
   else if (a === 'msgtts') { i = n.getAttribute('data-i'); if (sayKey === 'm' + i) stopAll(); else speakText(mdSpeak(S.chat[+i].text), 'm' + i); }
   else if (a === 'msgdel') { i = +n.getAttribute('data-i'); S.chat.splice(i, 1); if (S.chat[i - 1] && S.chat[i - 1].role === 'user' && (!S.chat[i] || S.chat[i].role === 'user')) S.chat.splice(i - 1, 1); save(); paintChat(); }
@@ -1471,6 +1548,7 @@ document.addEventListener('click', function (e) {
   else if (a === 'setaud') { S.set.aud = AUD_KEYS[i]; save(); render(); toast(T('audSet', T('auds').split('|')[i])); }
   else if (a === 'setaud2') { S.set.aud = AUD_KEYS[i]; save(); closeHSheet(); if (XZ.open) drawXz(); toast(T('audSet', T('auds').split('|')[i])); }
   else if (a === 'audpick') audPick();
+  else if (a === 'xzfs') { S.set.font = ((S.set.font == null ? 1 : S.set.font) + 1) % 5; save(); applyChrome(); toast(T('fonts').split('|')[S.set.font]); }
   else if (a === 'xzopt') { XZ.opt = !XZ.opt; paintOpts(); }
   else if (a === 'audtog') { XZ.audOpen = !XZ.audOpen; if (XZ.audOpen) XZ.qsOpen = false; paintOpts(); }
   else if (a === 'xzaud') { S.set.aud = AUD_KEYS[i]; save(); XZ.audOpen = false; paintOpts(); toast(T('audSet', T('auds').split('|')[i].replace(/^\S+\s/, ''))); }
