@@ -68,7 +68,7 @@
     return m;
   }
   function snap() {
-    if (C.role !== 'host') return; var pg = R && R.page; if (!pg || pg.t !== 'read' || !window.LCUR) return;
+    if (C.role !== 'host') return; var pg = R && R.page; if (pg && pg.t !== 'read' && pg.t !== 'studio') { var mx = document.documentElement.scrollHeight - (window.innerHeight || 600); bcast({ h: location.hash || '#/', f: mx > 0 ? Math.round(window.scrollY / mx * 1000) / 1000 : 0 }); return; } if (!pg || pg.t !== 'read' || !window.LCUR) return;
     var els = typeof sentList === 'function' ? sentList() : [], mid = (window.innerHeight || 600) * .42, best = null, bd = 1e9;
     for (var i = 0; i < els.length; i++) { var r = els[i].getBoundingClientRect(); if (r.bottom < 60 || r.top > (window.innerHeight || 600)) continue; var d = Math.abs((r.top + r.bottom) / 2 - mid); if (d < bd) { bd = d; best = els[i]; } }
     var m = best ? where(best, false) : { n: LCUR.n, b: '', s: 0, k: 0, hl: 0 };
@@ -78,6 +78,7 @@
   window.addEventListener('scroll', function () {
     if (C.role === 'host') { if (typeof spk !== 'undefined' && spk.on && !spk.paused) return; clearTimeout(scT); scT = setTimeout(snap, 350); }
   }, { passive: true });
+  window.addEventListener('hashchange', function () { setTimeout(function () { if (C.role === 'host') snap(); else if (C.role === 'follow' && C.want && C.want.h) apply(C.want); }, 450); });
   function userMove() { if (C.role === 'follow') { C.manualAt = Date.now(); chip(); } }
   window.addEventListener('touchmove', userMove, { passive: true }); window.addEventListener('wheel', userMove, { passive: true });
 
@@ -113,6 +114,7 @@
   function apply(m) {
     C.want = m;
     var pg = R && R.page;
+    if (m.h) { if ((location.hash || '#/') !== m.h) { if (typeof stopAll === 'function') stopAll(); location.hash = m.h; return; } if (Date.now() - C.manualAt > FOLLOW_COOL) { var mx = document.documentElement.scrollHeight - (window.innerHeight || 600); window.scrollTo({ top: Math.round(Math.max(0, mx) * (m.f || 0)), behavior: 'smooth' }); } return; }
     if (!pg || pg.t !== 'read' || pg.n !== m.n) { if (typeof stopAll === 'function') stopAll(); open_({ t: 'read', n: m.n }); return; }
     point();
   }
@@ -217,7 +219,7 @@
     /* 帶領者：朗讀走到哪一句、點了哪一句 */
     mark: function (el) { if (C.role !== 'host' || !el) return; var m = where(el, true); if (m) bcast(m); },
     /* 每次閱讀頁畫好之後 */
-    rendered: function () { if (C.role === 'host') setTimeout(snap, 120); else if (C.role === 'follow') { setTimeout(function () { point(true); }, 80); } chip(); },
+    rendered: function () { if (C.role === 'host') setTimeout(snap, 120); else if (C.role === 'follow') { setTimeout(function () { if (C.want && C.want.h) apply(C.want); else point(true); }, 80); } chip(); },
     /* 跟隨者自己點畫線、捲動 */
     manual: function () { if (C.role === 'follow') { C.manualAt = Date.now(); chip(); } }
   };
