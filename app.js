@@ -1,5 +1,5 @@
 /* 321舊約導讀 · 主程式（ES5，給 WPS／舊 WebView 也能跑） */
-var APPVER = '2026.1102.164546-ws23';
+var APPVER = '2026.1102.164546-ws24';
 var SVC = { xz: 'https://xiaozhi-proxy.spch321.workers.dev', tts: 'https://azure-tts.spch321.workers.dev', model: 'claude-sonnet-4-6' };
 var VOICES = { zh: ['zh-TW-YunJheNeural', 'zh-CN-Yunfan:DragonHDLatestNeural', 'zh-CN-Xiaochen:DragonHDLatestNeural'], en: ['en-US-AndrewNeural', 'en-US-AvaNeural', 'en-US-BrianNeural'], zs: ['zh-CN-Yunfan:DragonHDLatestNeural', 'zh-CN-Xiaochen:DragonHDLatestNeural', 'zh-TW-YunJheNeural'] };
 var EPOCH = [2026, 9, 31];
@@ -114,7 +114,7 @@ function setApp(h, keep) { var a = $('#app'); a.innerHTML = h; if (!keep) window
 function coBtn() { return window.CR ? '<button class="ib cob" data-act="coread" aria-label="' + esc(CR.text('title')) + '">📡</button>' : ''; }
 function topbar(title, bk, right) {
   return '<header class="tb">' + (bk ? '<button class="ib" onclick="back()" aria-label="' + esc(T('back')) + '">‹</button>' : '<div class="brand"><img src="icon-192.png" alt=""><span>' + esc(T('appName')) + '</span></div>') +
-    (bk ? '<div class="tb-t">' + esc(title || '') + '</div>' : '<div class="grow"></div>') + (right || '') + langSw() + '</header>';
+    (bk ? '<div class="tb-t">' + esc(title || '') + '</div>' : '<div class="grow"></div>') + (right || '') + coBtn() + langSw() + '</header>';
 }
 function langSw() { return '<div class="langswitch" id="langswitch"><button data-act="lang" data-lang="zh" class="' + (L() === 'zh' ? 'active' : '') + '">繁</button><button data-act="lang" data-lang="zs" class="' + (L() === 'zs' ? 'active' : '') + '">简</button><button data-act="lang" data-lang="en" class="' + (L() === 'en' ? 'active' : '') + '">EN</button></div>'; }
 function tabbar() {
