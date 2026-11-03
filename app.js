@@ -1,5 +1,5 @@
 /* 321舊約導讀 · 主程式（ES5，給 WPS／舊 WebView 也能跑） */
-var APPVER = '2026.1102.164546-ws24';
+var APPVER = '2026.1102.164546-ws24-xz1103';
 var SVC = { xz: 'https://xiaozhi-proxy.spch321.workers.dev', tts: 'https://azure-tts.spch321.workers.dev', model: 'claude-sonnet-4-6' };
 var VOICES = { zh: ['zh-TW-YunJheNeural', 'zh-CN-Yunfan:DragonHDLatestNeural', 'zh-CN-Xiaochen:DragonHDLatestNeural'], en: ['en-US-AndrewNeural', 'en-US-AvaNeural', 'en-US-BrianNeural'], zs: ['zh-CN-Yunfan:DragonHDLatestNeural', 'zh-CN-Xiaochen:DragonHDLatestNeural', 'zh-TW-YunJheNeural'] };
 var EPOCH = [2026, 9, 31];
@@ -348,7 +348,7 @@ function vMe() {
     (S.set.human ? '<p class="eyebrow">' + esc(T('voiceWho')) + '</p>' + segRow(T('voiceNames').split('|'), S.set.voice, 'setvoice') : '') +
     '<p class="eyebrow">' + esc(T('voiceRate')) + '</p>' + segRow(T('rates').split('|'), S.set.rate + 2, 'setrate') +
     '<button class="btn sm" data-act="voicetest" style="margin-top:10px">🔊 ' + esc(T('voiceTest')) + '</button></div>';
-  h += '<div class="card"><p class="eyebrow">' + esc(T('audT')) + '</p>' + audGrid('setaud') + '<div class="xs muted" style="margin-top:8px">' + esc(T('audD_' + S.set.aud)) + '</div></div>';
+  h += '<div class="card"><p class="eyebrow">' + esc(isEN() ? 'Xiaozhi' : '小智') + '</p>' + XZ2.settingsHtml() + '</div>';
   h += '<div class="card"><p class="eyebrow">' + esc(T('offT')) + '</p><div class="xs muted" style="margin-bottom:8px">' + esc(T('offD')) + '</div><button class="btn sm" data-act="offline">⬇ ' + esc(T('offB')) + '</button><span class="xs muted" id="offst"></span></div>';
   h += '<div class="card"><p class="eyebrow">' + esc(T('bkT')) + '</p><div class="row wrap2" style="gap:8px"><button class="btn sm" data-act="backup">⬇ ' + esc(T('bkOut')) + '</button><button class="btn sm" data-act="restore">⬆ ' + esc(T('bkIn')) + '</button><input type="file" id="bkfile" accept=".json,application/json" style="display:none"></div></div>';
   h += '<div class="card"><p class="eyebrow">' + esc(T('verT')) + '</p><div class="xs muted">v' + esc(APPVER) + '</div><div class="row wrap2" style="gap:8px;margin-top:8px"><button class="btn sm" data-act="chkupd">' + esc(T('checkUpd')) + '</button><button class="btn sm" data-act="hardupd">' + esc(T('hardUpd')) + '</button><button class="btn sm" data-act="install">📲 ' + esc(T('installB')) + '</button></div></div>';
@@ -405,6 +405,19 @@ function audGrid(act) { var h = '<div class="audgrid">', L = T('auds').split('|'
 function audPick() { openHSheet('<div class="sheet-title">' + esc(T('audT')) + '</div>' + audGrid('setaud2') + '<div class="xs muted" style="margin-top:8px">' + esc(T('audD_' + S.set.aud)) + '</div><div class="sheet-acts" style="margin-top:12px"><button class="btn" data-act="hclose">' + esc(T('close')) + '</button></div>'); }
 function audSys() { return T('aud_' + (S.set.aud || 'adult')); }
 
+/* ===== XZ2（-xz1103）：小智最新功能共用套件——回答長度五段、讀者資料、慕道友信仰背景、設定頁區塊、滿版小智頁摘要列 ===== */
+XZ2.init({
+  app: 'ot', pfx: 'ot321-', ownAud: true,
+  lang: function () { return L(); },
+  aud: { get: function () { return S.set.aud || 'adult'; }, set: function (k) { S.set.aud = k; save(); } },
+  legacyLen: function () { return S.set.alen; },
+  qsLabel: ['對象範例題', '对象范例题', 'Examples for me'],
+  reAnswer: function (m) { return reAnswerLast(m); },
+  onAsk: function (q) { sendChat(q); },
+  toast: function (m) { toast(m); },
+  readCtx: function () { try { var cur = window.LCUR && R.page && R.page.t === 'read' ? LCUR.title : ''; return cur ? [(isEN() ? 'Currently reading: ' : '目前讀到：') + cur] : []; } catch (e) { return []; } }
+});
+XZ2.watchScroll('#xzb');
 /* ---------- 小智回答選項：長度／慕道友信仰背景／可收合選項列（複製自321互動聖經） ---------- */
 var LEN_KEYS = ['brief', 'mid', 'full'], BG_KEYS = ['none', 'buddhism', 'folk', 'yiguandao', 'muslim', 'atheist'];
 function lenIdx() { var i = LEN_KEYS.indexOf(S.set.alen); return i < 0 ? 1 : i; }
@@ -418,19 +431,8 @@ function reAnswerLast(msg) {
   S.chat.splice(S.chat.length - 2, 2); chatCtx = u.src || null; save(); if (msg) toast(msg); sendChat(u.text); return true;
 }
 function optChips(arr, cur, act) { var h = ''; eachA(arr, function (l, i) { h += '<button class="chip' + (i === cur ? ' on' : '') + '" data-act="' + act + '" data-i="' + i + '">' + esc(l) + '</button>'; }); return h; }
-function xzOptsHtml() {
-  var L = T('auds').split('|'), ln = T('lens').split('|'), bn = T('bgNames').split('|'), sk = S.set.aud === 'seeker';
-  var sum = L[audIdx()].replace(/^\S+\s/, '') + '　·　' + (sk ? bn[bgIdx()] + '　·　' : '') + ln[lenIdx()];
-  var h = '<button class="opt-sum" data-act="xzopt"><span>⚙️ ' + esc(L[audIdx()].split(' ')[0]) + ' ' + esc(sum) + '</span><b>' + (XZ.opt ? '▲' : '▼') + '</b></button>';
-  if (!XZ.opt) return h;
-  h += '<div class="opt-body"><div class="optrow"><button class="qs-toggle aud-tog' + (XZ.audOpen ? ' on' : '') + '" data-act="audtog">' + esc(L[audIdx()].split(' ')[0]) + ' ' + esc(T('audNowS', L[audIdx()].replace(/^\S+\s/, ''))) + '</button><button class="qs-toggle' + (XZ.qsOpen ? ' on' : '') + '" data-act="qstog">💡 ' + esc(tk('xzExamples', '範例問題')) + '</button></div>';
-  if (XZ.audOpen) h += audGrid('xzaud') + '<div class="xs muted" style="margin:6px 0 8px">' + esc(T('audD_' + S.set.aud)) + '</div>';
-  if (XZ.qsOpen) { var qs = ''; eachA(audQuick().split('|'), function (q) { qs += '<button class="qs-chip" data-act="chatq">' + esc(q) + '</button>'; }); h += '<div class="qs-panel">' + qs + '</div>'; }
-  h += '<div class="optline"><span class="optlab">' + esc(T('lenT')) + '</span>' + optChips(ln, lenIdx(), 'setlen') + '</div>';
-  if (sk) h += '<div class="optline"><span class="optlab">' + esc(T('bgT')) + '</span>' + optChips(T('bgs').split('|'), bgIdx(), 'setbg') + '</div>';
-  return h + '</div>';
-}
-function paintOpts() { var el = $('#xzOpts'); if (el) el.innerHTML = xzOptsHtml(); }
+function xzOptsHtml() { return XZ2.controlsHtml({ qs: true }); }
+function paintOpts() { try { XZ2.refresh(); } catch (e) { } }
 
 
 /* ---------- 讀經樂：考考我 ---------- */
@@ -1047,7 +1049,7 @@ function mdToHtml(s) {
   h = h.replace(/(\d+:\d+(?:[–-]\d+)?)/g, '<span class="vref">$1</span>');
   var parts = h.split(/\n{2,}/), o = ''; eachA(parts, function (p) { o += /^\s*<(h\d|ul|ol|blockquote|hr|table)/.test(p) ? p : '<p>' + trim(p).replace(/\n/g, '<br>') + '</p>'; }); return o;
 }
-function sysPrompt() { return xzSystem() + T('xzFormat') + '\n' + audSys() + bgSys() + lenSys() + T('prayRule'); }
+function sysPrompt() { return xzSystem() + T('xzFormat') + '\n' + audSys() + XZ2.sysTail() + T('prayRule'); }
 function xzSystem() { return T('xzSys') + (XZ.ctx ? '\n\n' + XZ.ctx : ''); }
 function extractReply(d) { if (!d) return ''; if (typeof d === 'string') return d; var t = ''; if (d.content && d.content.length) { for (var i = 0; i < d.content.length; i++) if (d.content[i].type === 'text' || d.content[i].text) t += d.content[i].text || ''; if (t) return t; } return d.reply || d.text || d.message || (d.choices && d.choices[0] && d.choices[0].message ? d.choices[0].message.content : '') || ''; }
 function isFav(t) { for (var i = 0; i < S.fav.length; i++) if (S.fav[i].text === t) return true; return false; }
@@ -1092,6 +1094,7 @@ function drawXz() {
 function paintChat() { var log = $('#chatlog'); if (!log) return; log.innerHTML = chatLogHtml(); paintSay(); var bd = $('#xzb'); if (bd) setTimeout(function () { var l = S.chat[S.chat.length - 1], ms = log.querySelectorAll('.msg'), e = ms[ms.length - 1]; if (l && l.role !== 'user' && !l.wait && !l.cont && e && e.scrollIntoView && (l.text || '').length > 160) e.scrollIntoView({ block: 'start' }); else bd.scrollTop = bd.scrollHeight; }, 30); }
 function sendChat(text) {
   text = trim(text); if (!text || chatBusy) return; var inp = $('#chatIn'); if (inp) inp.value = '';
+  try { XZ2.collapse(); } catch (e) { }
   if (navigator.onLine === false) { S.chat.push({ role: 'user', text: text, ts: now() }); S.chat.push({ role: 'ai', text: T('xzOffline'), ts: now() }); save(); paintChat(); return; }
   S.chat.push({ role: 'user', text: text, src: chatCtx, ts: now() }); var src = chatCtx; chatCtx = null;
   S.chat.push({ role: 'ai', text: '', wait: true, src: src }); if (S.chat.length > 60) S.chat = S.chat.slice(-60); chatBusy = true; XZ.opt = false; XZ.qsOpen = false; XZ.audOpen = false; paintOpts(); paintChat();
@@ -1105,7 +1108,7 @@ function sendChat(text) {
   }
   (function round(k) {
     var ms = msgs.slice(); if (k) { ms.push({ role: 'assistant', content: acc }); ms.push({ role: 'user', content: T('xzGoOn') }); }
-    var payload = { model: SVC.model, max_tokens: 1600, system: sysPrompt(), messages: ms };
+    var payload = { model: SVC.model, max_tokens: XZ2.maxTokens(), system: sysPrompt(), messages: ms };
     (function attempt(n) {
       ajax('POST', SVC.xz, payload, null, function (st, txt) {
         var r = '', d = null;
