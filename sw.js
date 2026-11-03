@@ -4,10 +4,10 @@
    ‧ activate：刪舊快取、clients.claim，並通知所有頁面；背景中的舊頁面直接重新導向成新版
      （連「沒有更新程式碼的舊版頁面」也能被帶到新版）
    ‧ fetch：HTML／JS／JSON 網路優先（no-cache），離線才用快取；圖片快取優先；影音不攔截（Range 請求） */
-var V = 'ot321-2026.1102.164546-ws24-xz1103';
+var V = 'ot321-2026.1102.164546-ws24-xz1103-au1103';
 var PFX = 'ot321-';
-var VER = '2026.1102.164546-ws24-xz1103';
-var SHELL = ['./', './index.html', './app.js', './xz2.js', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './hero.jpg', './lang-zs.json', './lang-en.json', './media.js', './coread.js', './data/idx-zh.json', './data/idx-zs.json', './data/idx-en.json'];
+var VER = '2026.1102.164546-ws24-xz1103-au1103';
+var SHELL = ['./', './index.html', './app.js', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './hero.jpg', './lang-zs.json', './lang-en.json', './media.js', './coread.js', './data/idx-zh.json', './data/idx-zs.json', './data/idx-en.json', "./xz2.js"];
 self.addEventListener('install', function (e) {
   self.skipWaiting();
   e.waitUntil(caches.open(V).then(function (c) {
@@ -21,7 +21,7 @@ self.addEventListener('activate', function (e) {
     return self.clients.matchAll({ type: 'window', includeUncontrolled: true });
   }).then(function (cs) {
     cs.forEach(function (c) {
-      try { c.postMessage({ t: 'sw-updated', v: VER }); } catch (x) { }
+      try { if (c.url.indexOf(self.registration.scope) === 0) c.postMessage({ t: 'sw-updated', v: VER }); } catch (x) { }
       if (c.visibilityState === 'hidden' && c.navigate) { try { c.navigate(c.url); } catch (x) { } }
     });
   }));
