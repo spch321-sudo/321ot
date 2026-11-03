@@ -1,5 +1,5 @@
 /* 321舊約導讀 · 主程式（ES5，給 WPS／舊 WebView 也能跑） */
-var APPVER = '2026.1102.164546-ws24-xz1103-au1103';
+var APPVER = '2026.1102.164546-ws24-xz1103-au1103-xzm1103';
 var SVC = { xz: 'https://xiaozhi-proxy.spch321.workers.dev', tts: 'https://azure-tts.spch321.workers.dev', model: 'claude-sonnet-4-6' };
 var VOICES = { zh: ['zh-TW-YunJheNeural', 'zh-CN-Yunfan:DragonHDLatestNeural', 'zh-CN-Xiaochen:DragonHDLatestNeural'], en: ['en-US-AndrewNeural', 'en-US-AvaNeural', 'en-US-BrianNeural'], zs: ['zh-CN-Yunfan:DragonHDLatestNeural', 'zh-CN-Xiaochen:DragonHDLatestNeural', 'zh-TW-YunJheNeural'] };
 var EPOCH = [2026, 9, 31];
