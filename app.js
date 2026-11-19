@@ -1,5 +1,5 @@
 /* 321舊約導讀 · 主程式（ES5，給 WPS／舊 WebView 也能跑） */
-var APPVER = '2026.1102.164546-ws24-xz1103-au1103-xzm1103-rf1105-cs1109-ub1109-nv1109';
+var APPVER = '2026.1102.164546-ws24-xz1103-au1103-xzm1103-rf1105-cs1109-ub1109-nv1109-br1119';
 var SVC = { xz: 'https://xiaozhi-proxy.spch321.workers.dev', tts: 'https://azure-tts.spch321.workers.dev', model: 'claude-sonnet-4-6' };
 var VOICES = { zh: ['zh-TW-YunJheNeural', 'zh-CN-Yunfan:DragonHDLatestNeural', 'zh-CN-Xiaochen:DragonHDLatestNeural'], en: ['en-US-AndrewNeural', 'en-US-AvaNeural', 'en-US-BrianNeural'], zs: ['zh-CN-Yunfan:DragonHDLatestNeural', 'zh-CN-Xiaochen:DragonHDLatestNeural', 'zh-TW-YunJheNeural'] };
 var EPOCH = [2026, 9, 31];
@@ -348,6 +348,7 @@ function vMe() {
     (S.set.human ? '<p class="eyebrow">' + esc(T('voiceWho')) + '</p>' + segRow(T('voiceNames').split('|'), S.set.voice, 'setvoice') : '') +
     '<p class="eyebrow">' + esc(T('voiceRate')) + '</p>' + segRow(T('rates').split('|'), S.set.rate + 2, 'setrate') +
     '<button class="btn sm" data-act="voicetest" style="margin-top:10px">🔊 ' + esc(T('voiceTest')) + '</button></div>';
+  try { if (window.BREF) h += BREF.settingHtml(); } catch (e) { }
   h += '<div class="card"><p class="eyebrow">' + esc(isEN() ? 'Xiaozhi' : '小智') + '</p>' + XZ2.settingsHtml() + '</div>';
   h += '<div class="card"><p class="eyebrow">' + esc(T('offT')) + '</p><div class="xs muted" style="margin-bottom:8px">' + esc(T('offD')) + '</div><button class="btn sm" data-act="offline">⬇ ' + esc(T('offB')) + '</button><span class="xs muted" id="offst"></span></div>';
   h += '<div class="card"><p class="eyebrow">' + esc(T('bkT')) + '</p><div class="row wrap2" style="gap:8px"><button class="btn sm" data-act="backup">⬇ ' + esc(T('bkOut')) + '</button><button class="btn sm" data-act="restore">⬆ ' + esc(T('bkIn')) + '</button><input type="file" id="bkfile" accept=".json,application/json" style="display:none"></div></div>';
